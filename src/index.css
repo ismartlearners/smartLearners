@@ -1,0 +1,165 @@
+@import "tailwindcss";
+
+@layer utilities {
+  .btn-blue {
+    background-color: #003366;
+    color: white;
+    border-radius: 4px;
+    padding: 6px 16px;
+    font-weight: 500;
+    transition: background-color 0.15s ease;
+  }
+  .btn-blue:hover {
+    background-color: #002244;
+  }
+  .btn-outline {
+    border: 1px solid #003366;
+    color: #003366;
+    border-radius: 4px;
+    padding: 6px 16px;
+    font-weight: 500;
+    background-color: white;
+    transition: all 0.15s ease;
+  }
+  .btn-outline:hover {
+    background-color: #f0f4f8;
+  }
+  .choice-btn {
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    padding: 12px 16px;
+    text-align: left;
+    transition: all 0.2s;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    width: 100%;
+    position: relative;
+  }
+  .choice-btn:hover {
+    background-color: #eff6ff;
+    border-color: #3b82f6;
+  }
+  .choice-btn.selected {
+    background-color: #003366;
+    color: white;
+    border-color: #003366;
+  }
+  .choice-btn.selected .choice-label {
+    border-color: white;
+    color: white;
+    background-color: transparent;
+  }
+  .choice-btn.struck {
+    opacity: 0.5;
+  }
+  .choice-label {
+    width: 26px;
+    height: 26px;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    shrink: 0;
+  }
+}
+
+/* SAT Clean & Clear Question Content Table Styling - PURE WHITE UNPOWERED UN-SHADED BACKGROUNDS */
+.question-content table,
+.passage-content table,
+table {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-collapse: collapse;
+  border: 1px solid #334155;
+  font-size: 0.875rem;
+  line-height: 1.35;
+  color: #0f172a;
+  background-color: #ffffff;
+  background: #ffffff;
+  box-shadow: none;
+  max-width: 100%;
+}
+
+.question-content table th,
+.passage-content table th,
+.question-content table td,
+.passage-content table td,
+table th,
+table td {
+  border: 1px solid #475569;
+  padding: 5px 8px;
+  background-color: #ffffff;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.question-content table th,
+.passage-content table th,
+table th {
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Dense Multi-column SAT Tables */
+.sat-dense-table th,
+.sat-dense-table td,
+table.sat-dense-table th,
+table.sat-dense-table td {
+  padding: 4px 3px !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  word-break: normal !important;
+}
+
+/* Custom Clickable & Visible Scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 4px;
+  border: 1.5px solid #f1f5f9;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* SAT Highlight Styling & Selective Eraser Hover Effects */
+mark.sat-highlight {
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+mark.sat-highlight:hover {
+  filter: brightness(0.95);
+  box-shadow: 0 0 0 1.5px rgba(217, 119, 6, 0.4);
+}
+
+.highlight-eraser-active mark.sat-highlight {
+  cursor: pointer;
+}
+
+.highlight-eraser-active mark.sat-highlight:hover {
+  background-color: #fecdd3 !important;
+  color: #881337 !important;
+  box-shadow: 0 0 0 2px #f43f5e;
+  text-decoration: line-through;
+}
+
+
+

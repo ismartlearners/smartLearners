@@ -1,0 +1,6 @@
+{
+  "name": "SAT-SMART",
+  "description": "An authentic SAT-SMART digital SAT testing interface featuring timer, line strikethrough, question grid navigation, Desmos graphing calculator, and a scribble canvas overlay.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

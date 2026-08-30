@@ -129,14 +129,14 @@ export const WordDefinitionModal: React.FC<WordDefinitionModalProps> = ({
   const fetchDirectFreeDictionary = async (targetWord: string, targetContext?: string): Promise<WordDefinitionData> => {
     const clean = targetWord.toLowerCase().trim();
     const targetSentence = extractTargetContextSentence(targetContext, targetWord);
-    let bestDef = `Definition for "${targetWord}".`;
+    let bestDef = "";
     let bestPos = "vocabulary";
     let bestEx = "";
     let phonetic = `/${clean}/`;
 
     try {
       const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(clean)}`, {
-        signal: AbortSignal.timeout(2500)
+        signal: AbortSignal.timeout(3500)
       });
       if (res.ok) {
         const data = await res.json();
@@ -146,7 +146,7 @@ export const WordDefinitionModal: React.FC<WordDefinitionModalProps> = ({
           for (const m of entry.meanings || []) {
             for (const d of m.definitions || []) {
               if (d.definition) {
-                if (!bestDef || bestDef.startsWith("Definition for")) {
+                if (!bestDef) {
                   bestDef = d.definition;
                   bestPos = m.partOfSpeech || bestPos;
                 }
@@ -163,6 +163,34 @@ export const WordDefinitionModal: React.FC<WordDefinitionModalProps> = ({
       }
     } catch {
       // ignore
+    }
+
+    // Secondary fallback via Datamuse definitions if Free Dictionary didn't find the definition
+    if (!bestDef) {
+      try {
+        const dmRes = await fetch(`https://api.datamuse.com/words?sp=${encodeURIComponent(clean)}&md=d&max=1`, {
+          signal: AbortSignal.timeout(2500)
+        });
+        if (dmRes.ok) {
+          const dmData = await dmRes.json();
+          if (Array.isArray(dmData) && dmData[0]?.defs?.length > 0) {
+            const rawDef = dmData[0].defs[0];
+            const parts = rawDef.split("\t");
+            if (parts.length >= 2) {
+              bestPos = parts[0] === "n" ? "noun" : parts[0] === "v" ? "verb" : parts[0] === "adj" ? "adjective" : parts[0] === "adv" ? "adverb" : "vocabulary";
+              bestDef = parts[1].trim();
+            } else {
+              bestDef = rawDef.trim();
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    if (!bestDef) {
+      bestDef = `Definition for "${targetWord}".`;
     }
 
     // Translation

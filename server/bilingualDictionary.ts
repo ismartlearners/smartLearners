@@ -379,7 +379,7 @@ export async function translateToVietnamese(text: string): Promise<string> {
   if (gemini) {
     try {
       const gRes = await gemini.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.6-flash",
         contents: `Translate the following English dictionary definition or context sentence accurately into Vietnamese. Return ONLY the Vietnamese translation without quotation marks or explanations:\n\n${trimmed}`,
         config: {
           temperature: 0.1,
@@ -468,7 +468,7 @@ Return ONLY valid JSON:
 }`;
 
     const res = await gemini.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.6-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",

@@ -2233,7 +2233,7 @@ export const QuestionAnswerArea: React.FC<QuestionAnswerAreaProps> = ({
                   }
                 }}
                 placeholder="Type your answer here..."
-                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 font-mono text-lg font-bold focus:border-[#003366] focus:ring-2 focus:ring-[#003366]/20 transition outline-none shadow-2xs"
+                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 font-mono text-lg font-bold focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition outline-none shadow-2xs"
               />
               {userAnswer && (
                 <button
@@ -2312,7 +2312,8 @@ export const QuestionAnswerArea: React.FC<QuestionAnswerAreaProps> = ({
           <button
             type="button"
             onClick={onToggleCheckAnswer}
-            className="w-full py-3 px-4 bg-[#003366] hover:bg-[#002244] active:bg-[#001122] text-white font-bold text-xs rounded-xl shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer"
+            style={{ backgroundColor: 'var(--zen-primary, #0d5c6f)' }}
+            className="w-full py-3 px-4 text-white font-bold text-xs rounded-xl shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer hover:opacity-90 active:scale-[0.99]"
           >
             <span>{isChecked ? "Hide Explanation" : "Check Answer & View Explanation"}</span>
           </button>
@@ -2418,7 +2419,8 @@ export const QuestionAnswerArea: React.FC<QuestionAnswerAreaProps> = ({
           <button
             type="button"
             onClick={onToggleCheckAnswer}
-            className="w-full py-2.5 px-4 bg-[#003366] hover:bg-[#002244] text-white font-bold text-xs rounded-xl shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer"
+            style={{ backgroundColor: 'var(--zen-primary, #0d5c6f)' }}
+            className="w-full py-2.5 px-4 text-white font-bold text-xs rounded-xl shadow-2xs transition flex items-center justify-center gap-2 cursor-pointer hover:opacity-90 active:scale-[0.99]"
           >
             <span>{isChecked ? "Hide Explanation" : "Check Answer & View Explanation"}</span>
           </button>

@@ -369,33 +369,12 @@ export function extractAndParseJSON(rawText: string): any {
   }
 }
 
-// Multi-provider translation service to guarantee Vietnamese translation is always obtained
+// Multi-provider translation service to guarantee Vietnamese translation is always obtained without using Gemini API
 export async function translateToVietnamese(text: string): Promise<string> {
   if (!text || text.trim().length === 0) return "";
   const trimmed = text.trim();
 
-  // Provider 1: Gemini API translation if available
-  const gemini = getGemini();
-  if (gemini) {
-    try {
-      const gRes = await gemini.models.generateContent({
-        model: "gemini-3.6-flash",
-        contents: `Translate the following English dictionary definition or context sentence accurately into Vietnamese. Return ONLY the Vietnamese translation without quotation marks or explanations:\n\n${trimmed}`,
-        config: {
-          temperature: 0.1,
-          maxOutputTokens: 250,
-        }
-      });
-      const t = gRes.text?.trim().replace(/^["']|["']$/g, '');
-      if (t && t.length > 0) {
-        return t;
-      }
-    } catch {
-      // Continue to next provider
-    }
-  }
-
-  // Provider 2: Google Translate GTX endpoint
+  // Provider 1: Google Translate GTX endpoint (free, unlimited, instant)
   try {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=vi&dt=t&q=${encodeURIComponent(trimmed)}`;
     const res = await fetch(url, { signal: AbortSignal.timeout(2500) });
@@ -412,7 +391,7 @@ export async function translateToVietnamese(text: string): Promise<string> {
     // Continue to next provider
   }
 
-  // Provider 3: MyMemory Translation API
+  // Provider 2: MyMemory Translation API
   try {
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(trimmed)}&langpair=en|vi`;
     const res = await fetch(url, { signal: AbortSignal.timeout(2500) });
@@ -430,74 +409,8 @@ export async function translateToVietnamese(text: string): Promise<string> {
   return "";
 }
 
-// Generate high-grade bilingual entry via Gemini when available
-export async function generateGeminiBilingualEntry(word: string, contextSentence?: string): Promise<BilingualWordEntry | null> {
-  const gemini = getGemini();
-  if (!gemini) return null;
-
-  try {
-    const prompt = `You are a professional SAT English-Vietnamese lexicographer.
-Provide a high-quality, strictly bilingual dictionary entry for the English word "${word}".
-${contextSentence ? `The word appears in this passage context: "${contextSentence}"` : ""}
-
-Requirements:
-1. "definitionEn": Clear, academic English definition of the word.
-2. "definitionVi": Natural, precise Vietnamese translation of the definition (e.g. for "A person who is popular, especially at a school" -> "Người nổi tiếng, được ưa chuộng, đặc biệt ở trường học").
-3. "contextMeaningEn": If context was provided, format as: In this passage: "${contextSentence || ''}" (or omit if no context).
-4. "contextMeaningVi": If context was provided, format as: Trong đoạn trích: "<Vietnamese translation of that sentence>".
-5. "exampleEn": A realistic academic example sentence in English using the word.
-6. "exampleVi": Vietnamese translation of the example sentence.
-7. "synonyms": Array of 3 to 6 genuine English synonyms (English words ONLY, never Vietnamese).
-8. "partOfSpeech": English part of speech (noun, verb, adjective, adverb).
-9. "partOfSpeechVi": Vietnamese part of speech (danh từ, động từ, tính từ, trạng từ).
-10. "phonetic": IPA pronunciation (e.g. /ˈpɑːpjələr/).
-
-Return ONLY valid JSON:
-{
-  "word": "${word}",
-  "partOfSpeech": "...",
-  "partOfSpeechVi": "...",
-  "phonetic": "/.../",
-  "definitionEn": "...",
-  "definitionVi": "...",
-  "contextMeaningEn": "...",
-  "contextMeaningVi": "...",
-  "exampleEn": "...",
-  "exampleVi": "...",
-  "synonyms": ["...", "..."]
-}`;
-
-    const res = await gemini.models.generateContent({
-      model: "gemini-3.6-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.1,
-      }
-    });
-
-    const text = res.text;
-    if (text) {
-      const parsed = extractAndParseJSON(text);
-      if (parsed && (parsed.definitionEn || parsed.definitionVi)) {
-        return {
-          word: parsed.word || word,
-          partOfSpeech: parsed.partOfSpeech || "vocabulary",
-          partOfSpeechVi: parsed.partOfSpeechVi || "từ vựng",
-          phonetic: parsed.phonetic || `/${word.toLowerCase()}/`,
-          definitionEn: parsed.definitionEn || `Definition for "${word}".`,
-          definitionVi: parsed.definitionVi || `Định nghĩa cho từ "${word}".`,
-          contextMeaningEn: parsed.contextMeaningEn || (contextSentence ? `In this passage: "${contextSentence}"` : undefined),
-          contextMeaningVi: parsed.contextMeaningVi || undefined,
-          exampleEn: parsed.exampleEn || undefined,
-          exampleVi: parsed.exampleVi || undefined,
-          synonyms: Array.isArray(parsed.synonyms) ? parsed.synonyms.filter((s: any) => typeof s === 'string' && /^[a-zA-Z\s\-']+$/.test(s)) : []
-        };
-      }
-    }
-  } catch (err) {
-    console.warn("Gemini dictionary lookup error, proceeding with API pipeline:", err);
-  }
+// Generate high-grade bilingual entry directly without Gemini API
+export async function generateGeminiBilingualEntry(_word: string, _contextSentence?: string): Promise<BilingualWordEntry | null> {
   return null;
 }
 

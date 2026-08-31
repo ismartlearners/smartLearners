@@ -30,7 +30,11 @@ import {
   Sparkles,
   BookOpen,
   Lightbulb,
-  HelpCircle
+  HelpCircle,
+  Waves,
+  Cpu,
+  Star,
+  Sunrise
 } from 'lucide-react';
 import { SAT_QUESTIONS, SAT_TESTS, TEST_LIST, ModuleKey, TestId } from './data/questions';
 import { sanitizeQuestion } from './utils/sanitizeText';
@@ -121,6 +125,8 @@ import {
 } from './components/QuestionAnswerArea';
 import { WordDefinitionModal } from './components/WordDefinitionModal';
 import { HintTextBox } from './components/HintTextBox';
+import { MoodLogoIcon } from './components/MoodLogoIcon';
+import { MoodId, MOODS, MOOD_LIST, DEFAULT_MOOD } from './utils/moodThemes';
 import { Stroke, Point, AnnotationNote, AnnotationColor } from './types';
 
 
@@ -223,6 +229,22 @@ export default function App() {
 
   // Restart Modal & Toast Notification
   const [showRestartModal, setShowRestartModal] = useState(false);
+  const [activeMood, setActiveMood] = useState<MoodId>(() => {
+    return (localStorage.getItem('sat_stars_mood') as MoodId) || DEFAULT_MOOD;
+  });
+
+  useEffect(() => {
+    const currentMood = MOODS[activeMood] || MOODS.zen;
+    const root = document.documentElement;
+    root.style.setProperty('--zen-primary', currentMood.themeColor);
+    root.style.setProperty('--zen-primary-light', currentMood.themeColorLight);
+    root.style.setProperty('--zen-primary-border', currentMood.badgeBorder);
+    try {
+      localStorage.setItem('sat_stars_mood', activeMood);
+    } catch {
+      // ignore
+    }
+  }, [activeMood]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string>('');
 
@@ -3055,140 +3077,241 @@ export default function App() {
     });
 
   return (
-    <div className="flex flex-col h-screen w-full bg-white text-gray-900 font-sans" style={{ backgroundColor: '#f3f4f6' }}>
+    <div className="flex flex-col h-screen w-full font-sans bg-slate-50 text-slate-900 relative overflow-hidden">
       
-      {/* TOP HEADER (CLEAN UTILITY / BLUEBOOK HEADER) */}
-      <nav className="min-h-12 py-1.5 bg-white border-b border-gray-200 flex flex-wrap items-center justify-between px-4 md:px-6 shrink-0 relative z-40 gap-y-2">
-        {/* Left: Brand & Section Switcher */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <span className="font-bold text-lg tracking-tight" style={{ color: '#003366' }}>SAT-SMART</span>
-          <div className="h-5 w-px bg-gray-300 mx-0.5 hidden sm:block"></div>
+      {/* FULL-WIDTH TOP HEADER WITH 2 CLEAN ROWS */}
+      <header className="bg-white border-b border-gray-200 shrink-0 relative z-40 select-none px-4 md:px-6 py-2.5">
+        {/* ROW 1: Brand, Expanded Tagline, Timer, Auto-Saved, Tools */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-gray-100">
           
-          {/* Section Quick Tabs */}
-          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200">
-            <button
-              type="button"
-              onClick={() => {
-                if (!activeModuleKey.startsWith('RW')) switchModule('RW_1');
-              }}
-              className={`px-3 py-1 text-xs font-bold rounded-md transition cursor-pointer ${
-                activeModuleKey.startsWith('RW')
-                  ? 'bg-[#003366] text-white shadow-xs'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
-              }`}
-            >
-              Reading & Writing
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (!activeModuleKey.startsWith('MATH')) switchModule('MATH_1');
-              }}
-              className={`px-3 py-1 text-xs font-bold rounded-md transition cursor-pointer ${
-                activeModuleKey.startsWith('MATH')
-                  ? 'bg-[#003366] text-white shadow-xs'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
-              }`}
-            >
-              Math
-            </button>
+          {/* Left: Brand Logo & Expanded Tagline */}
+          <div className="flex items-center gap-4 flex-1 min-w-[280px]">
+            {/* SAT-STARS BRAND WITH INTERACTIVE MOOD LOGO ICON */}
+            <div className="relative group shrink-0">
+              <div 
+                className="flex items-center gap-2.5 cursor-pointer select-none p-1 rounded-xl hover:bg-gray-100 transition-colors"
+                title="Hover or click to switch study mood"
+              >
+                <MoodLogoIcon moodId={activeMood} size={52} />
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-1.5">
+                    <span 
+                      className="font-black text-xl md:text-2xl tracking-tight transition-colors duration-200"
+                      style={{ color: MOODS[activeMood]?.themeColor || '#003366' }}
+                    >
+                      SAT-STARS
+                    </span>
+                    <span 
+                      className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider text-white shadow-2xs transition-colors"
+                      style={{ backgroundColor: MOODS[activeMood]?.themeColor || '#003366' }}
+                    >
+                      {MOODS[activeMood]?.name} ▾
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* MOOD SELECTOR DROPDOWN MENU */}
+              <div className="absolute left-0 top-full mt-1 w-64 bg-white rounded-xl shadow-xl border border-gray-200 p-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="text-[11px] font-bold uppercase text-gray-400 px-3 py-1 tracking-wider border-b border-gray-100 mb-1">
+                  Select Study Mood
+                </div>
+                {MOOD_LIST.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveMood(m.id);
+                      try {
+                        localStorage.setItem('sat_stars_mood', m.id);
+                      } catch {
+                        // ignore
+                      }
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors ${
+                      activeMood === m.id
+                        ? 'bg-blue-50 text-[#003366] font-bold'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.themeColor }}></span>
+                      <span>{m.name}</span>
+                    </div>
+                    {activeMood === m.id && <span className="text-[10px] text-blue-600">Active</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Expanded Inspirational Motto Tagline Filling Space */}
+             <div className="hidden sm:flex items-center pl-4 border-l border-gray-200 flex-1 gap-2">
+              {activeMood === 'zen' && <Sunrise className="w-4 h-4 text-teal-700 animate-pulse shrink-0" />}
+              {activeMood === 'hawaii' && <Waves className="w-4 h-4 text-sky-500 animate-pulse shrink-0" />}
+              {activeMood === 'scifi' && <Cpu className="w-4 h-4 text-cyan-600 animate-pulse shrink-0" />}
+              {activeMood === 'anime' && <Star className="w-4 h-4 text-purple-600 animate-bounce shrink-0 fill-purple-200" />}
+              <span 
+                className="text-sm md:text-base font-semibold italic tracking-wide transition-colors duration-300 px-3 py-1 rounded-lg flex items-center gap-2"
+                style={{ 
+                  color: MOODS[activeMood]?.themeColor || '#003366',
+                  ...(activeMood === 'zen' ? {
+                    backgroundImage: 'radial-gradient(circle, transparent 35%, rgba(13, 92, 111, 0.1) 36%, rgba(13, 92, 111, 0.1) 40%, transparent 41%)',
+                    backgroundSize: '24px 24px',
+                    backgroundColor: 'rgba(230, 244, 247, 0.7)'
+                  } : activeMood === 'hawaii' ? {
+                    backgroundImage: 'radial-gradient(circle, rgba(2, 132, 199, 0.08) 12%, transparent 12%), radial-gradient(circle, rgba(14, 165, 233, 0.08) 12%, transparent 12%)',
+                    backgroundSize: '16px 16px',
+                    backgroundPosition: '0 0, 8px 8px',
+                    backgroundColor: 'rgba(224, 242, 254, 0.5)'
+                  } : activeMood === 'scifi' ? {
+                    backgroundImage: 'linear-gradient(90deg, rgba(0, 131, 143, 0.07) 1px, transparent 1px), linear-gradient(0deg, rgba(0, 131, 143, 0.07) 1px, transparent 1px)',
+                    backgroundSize: '12px 12px',
+                    backgroundColor: 'rgba(236, 254, 255, 0.6)'
+                  } : activeMood === 'anime' ? {
+                    backgroundImage: 'radial-gradient(circle, rgba(91, 33, 182, 0.1) 1.5px, transparent 1.5px)',
+                    backgroundSize: '10px 10px',
+                    backgroundColor: 'rgba(243, 232, 255, 0.6)'
+                  } : {})
+                }}
+              >
+                "{MOODS[activeMood]?.motto}"
+              </span>
+              {activeMood === 'zen' && <Sunrise className="w-4 h-4 text-teal-700 animate-pulse shrink-0" />}
+              {activeMood === 'hawaii' && <Waves className="w-4 h-4 text-sky-500 animate-pulse shrink-0" />}
+              {activeMood === 'scifi' && <Cpu className="w-4 h-4 text-cyan-600 animate-pulse shrink-0" />}
+              {activeMood === 'anime' && <Star className="w-4 h-4 text-purple-600 animate-bounce shrink-0 fill-purple-200" />}
+            </div>
           </div>
 
-          {/* Test Select Dropdown */}
-          <select
-            value={activeTestId}
-            onChange={(e) => {
-              const newTestId = e.target.value as TestId;
-              setActiveTestId(newTestId);
-              setCurrentIndex(0);
-              setTimeRemaining(getModuleTimeLimit(activeModuleKey));
-              const targetModules = SAT_TESTS[newTestId]?.modules;
-              if (targetModules && targetModules[activeModuleKey]?.questions.length === 0) {
-                setActiveModuleKey('RW_1');
-              }
-            }}
-            className="bg-[#003366] text-white text-xs font-bold rounded-md px-2.5 py-1 shadow-2xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 border-0"
-          >
-            {TEST_LIST.map(test => (
-              <option key={test.id} value={test.id} className="bg-white text-gray-900 font-semibold">
-                {test.name}
-              </option>
-            ))}
-          </select>
+          {/* Right: Timer (First), Auto-Saved (Second), and Restart (Third) */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Timer Pill (First) */}
+            <div className="bg-gray-100 px-3 py-1 rounded-full flex items-center gap-2 border border-gray-200 shadow-2xs">
+              <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold">TIMER</span>
+              <span className="font-mono font-bold text-xs text-gray-900">
+                {showTimerHidden ? '•• : ••' : `${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`}
+              </span>
+              <button 
+                onClick={() => setShowTimerHidden(!showTimerHidden)}
+                className="text-[11px] text-gray-500 hover:text-gray-800 underline ml-0.5 cursor-pointer font-medium"
+              >
+                {showTimerHidden ? 'Show' : 'Hide'}
+              </button>
+            </div>
 
-          {/* Module Select Dropdown */}
-          <select
-            value={activeModuleKey}
-            onChange={(e) => switchModule(e.target.value as ModuleKey)}
-            className="bg-white border border-gray-300 text-gray-800 text-xs font-semibold rounded-md px-2.5 py-1 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#003366]"
-          >
-            <option value="RW_1">Reading & Writing Module 1 ({currentModules.RW_1.questions.length} Qs)</option>
-            <option value="RW_2">Reading & Writing Module 2 ({currentModules.RW_2.questions.length} Qs)</option>
-            <option value="MATH_1">Math Module 1 ({currentModules.MATH_1.questions.length} Qs)</option>
-            <option value="MATH_2">Math Module 2 ({currentModules.MATH_2.questions.length} Qs)</option>
-          </select>
+            {/* Auto-Saved Indicator (Second) */}
+            <div className="flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-full text-xs font-semibold shadow-2xs" title="Auto-saved automatically to your browser">
+              <Check className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Auto-Saved</span>
+            </div>
+
+            {/* Restart Button (Third - Next to Auto-Saved) */}
+            <button 
+              onClick={() => setShowRestartModal(true)} 
+              className="btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 text-slate-700 hover:text-slate-900 border border-slate-300 bg-white hover:bg-slate-50 rounded-md font-medium transition cursor-pointer shadow-2xs"
+              title="Restart current test module"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-slate-600" />
+              <span className="hidden sm:inline">Restart</span>
+            </button>
+          </div>
         </div>
 
-        {/* Right: Timer & Tools */}
-        <div className="flex items-center gap-3 flex-wrap">
-          {/* Auto-Saved Indicator */}
-          <div className="hidden lg:flex items-center gap-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-full text-[11px] font-semibold shadow-2xs" title="Auto-saved automatically to your browser">
-            <Check className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Auto-Saved</span>
-          </div>
-
-          {/* Timer Pill */}
-          <div className="bg-gray-100 px-3.5 py-1 rounded-full flex items-center gap-2">
-            <span className="text-[11px] uppercase tracking-wider text-gray-500 font-bold">Timer</span>
-            <span className="font-mono font-bold text-xs text-gray-900">
-              {showTimerHidden ? '••:••' : formattedTime}
-            </span>
-            <button 
-              onClick={() => setShowTimerHidden(!showTimerHidden)}
-              className="text-[11px] text-gray-500 hover:text-gray-800 underline ml-0.5"
+        {/* ROW 2 & TOOLS COMBINED INTO 1 RESPONSIVE ROW */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* 1. Test Dropdown (Test No. 4) */}
+            <select
+              value={activeTestId}
+              onChange={(e) => {
+                const newTestId = e.target.value as TestId;
+                setActiveTestId(newTestId);
+                setCurrentIndex(0);
+                setTimeRemaining(getModuleTimeLimit(activeModuleKey));
+                const targetModules = SAT_TESTS[newTestId]?.modules;
+                if (targetModules && targetModules[activeModuleKey]?.questions.length === 0) {
+                  setActiveModuleKey('RW_1');
+                }
+              }}
+              style={{ backgroundColor: MOODS[activeMood]?.themeColor || '#003366' }}
+              className="text-white text-xs font-bold rounded-lg px-3 py-1.5 shadow-2xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 border-0 transition-colors"
             >
-              {showTimerHidden ? 'Show' : 'Hide'}
-            </button>
+              {TEST_LIST.map(test => (
+                <option key={test.id} value={test.id} className="bg-white text-gray-900 font-semibold">
+                  {test.name}
+                </option>
+              ))}
+            </select>
+
+            {/* 2. Section Tabs (Reading & Writing, Math) */}
+            <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!activeModuleKey.startsWith('RW')) switchModule('RW_1');
+                }}
+                style={
+                  activeModuleKey.startsWith('RW') 
+                    ? { backgroundColor: MOODS[activeMood]?.themeColor || '#003366' } 
+                    : undefined
+                }
+                className={`px-3 py-1 text-xs font-bold rounded-md transition cursor-pointer ${
+                  activeModuleKey.startsWith('RW')
+                    ? 'text-white shadow-xs'
+                    : 'text-gray-700 hover:text-gray-950 hover:bg-gray-200'
+                }`}
+              >
+                Reading & Writing
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!activeModuleKey.startsWith('MATH')) switchModule('MATH_1');
+                }}
+                style={
+                  activeModuleKey.startsWith('MATH') 
+                    ? { backgroundColor: MOODS[activeMood]?.themeColor || '#003366' } 
+                    : undefined
+                }
+                className={`px-3 py-1 text-xs font-bold rounded-md transition cursor-pointer ${
+                  activeModuleKey.startsWith('MATH')
+                    ? 'text-white shadow-xs'
+                    : 'text-gray-700 hover:text-gray-950 hover:bg-gray-200'
+                }`}
+              >
+                Math
+              </button>
+            </div>
+
+            {/* 3. Module Dropdown (Reading & Writing Module 2 (33 Qs)) */}
+            <select
+              value={activeModuleKey}
+              onChange={(e) => switchModule(e.target.value as ModuleKey)}
+              className="bg-white border border-gray-300 text-gray-800 text-xs font-semibold rounded-lg px-3 py-1.5 shadow-2xs cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <option value="RW_1">Reading & Writing Module 1 ({currentModules.RW_1.questions.length} Qs)</option>
+              <option value="RW_2">Reading & Writing Module 2 ({currentModules.RW_2.questions.length} Qs)</option>
+              <option value="MATH_1">Math Module 1 ({currentModules.MATH_1.questions.length} Qs)</option>
+              <option value="MATH_2">Math Module 2 ({currentModules.MATH_2.questions.length} Qs)</option>
+            </select>
           </div>
 
-          {/* Tools */}
+          {/* Action Tools (Review, Scribble, Annotate, Strikethrough, Dictionary, Ref, Calc, Desmos) */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <button 
               onClick={() => {
                 setReviewFilterTab('marked');
                 setShowReviewModal(true);
               }}
-              className={`btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 transition cursor-pointer ${
+              className={`btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 transition cursor-pointer border rounded-md font-medium ${
                 markedInCurrentModule.length > 0 
                   ? 'bg-amber-50 border-amber-300 text-amber-950 font-bold shadow-2xs hover:bg-amber-100' 
-                  : 'text-slate-700 hover:text-slate-900 border-slate-300 bg-white'
+                  : 'text-slate-700 hover:text-slate-900 border-slate-300 bg-white hover:bg-slate-50'
               }`}
               title="Review questions marked for review in this test"
             >
               <Bookmark className={`w-3.5 h-3.5 ${markedInCurrentModule.length > 0 ? 'fill-red-600 text-red-600' : 'text-slate-600'}`} />
               <span>Review {markedInCurrentModule.length > 0 ? `(${markedInCurrentModule.length})` : ''}</span>
-            </button>
-
-            <button 
-              onClick={() => setShowRestartModal(true)}
-              className="btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 transition text-slate-700 hover:text-red-700 hover:border-red-300 hover:bg-red-50 cursor-pointer"
-              title="Restart test or reset progress to start fresh"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-slate-600" />
-              <span>Restart</span>
-            </button>
-
-            <button 
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={handleTopHighlightClick}
-              className={`btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 transition ${
-                isHighlightMode ? 'bg-yellow-200 border-yellow-500 text-yellow-900 font-semibold shadow-2xs' : ''
-              }`}
-              title="Highlight selected text or toggle Highlight Mode"
-            >
-              <Highlighter className="w-3.5 h-3.5 text-yellow-600" />
-              <span>Highlight</span>
-              {isHighlightMode && <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>}
             </button>
 
             <button 
@@ -3202,7 +3325,7 @@ export default function App() {
                   setIsStrikethroughMode(false);
                 }
               }}
-              className={`btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 ${isScribbleMode ? 'bg-red-50 border-red-500 text-red-600 font-semibold' : ''}`}
+              className={`btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 cursor-pointer border rounded-md font-medium ${isScribbleMode ? 'bg-red-50 border-red-500 text-red-600 font-semibold' : 'text-slate-700 hover:bg-slate-50 border-slate-300 bg-white'}`}
               title="Scribble mode"
             >
               <Edit3 className="w-3.5 h-3.5 text-red-500" />
@@ -3223,15 +3346,15 @@ export default function App() {
                   }
                 }
               }}
-              className={`btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 transition cursor-pointer ${
-                isAnnotateMode ? 'bg-amber-100 border-amber-500 text-amber-900 font-semibold shadow-2xs' : ''
+              className={`btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 transition cursor-pointer border rounded-md font-medium ${
+                isAnnotateMode ? 'bg-amber-100 border-amber-500 text-amber-900 font-semibold shadow-2xs' : 'text-slate-700 hover:bg-slate-50 border-slate-300 bg-white'
               }`}
               title="Type notes & annotations next to questions"
             >
               <StickyNote className="w-3.5 h-3.5 text-amber-600" />
               <span>Annotate</span>
               {(questionAnnotations[currentQ.id] || []).length > 0 && (
-                <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                   {(questionAnnotations[currentQ.id] || []).length}
                 </span>
               )}
@@ -3248,8 +3371,8 @@ export default function App() {
                   setIsAnnotateMode(false);
                 }
               }}
-              className={`btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 transition cursor-pointer ${
-                isStrikethroughMode ? 'bg-blue-100 border-[#003366] text-[#003366] font-semibold shadow-2xs' : ''
+              className={`btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 transition cursor-pointer border rounded-md font-medium ${
+                isStrikethroughMode ? 'bg-blue-100 border-[#003366] text-[#003366] font-semibold shadow-2xs' : 'text-slate-700 hover:bg-slate-50 border-slate-300 bg-white'
               }`}
               title="Toggle strikethrough mode"
             >
@@ -3264,12 +3387,12 @@ export default function App() {
                 const sel = window.getSelection()?.toString().trim();
                 openWordDefinition(sel || definitionModalState.word || 'vocabulary', '', null);
               }}
-              className={`btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 transition cursor-pointer ${
-                definitionModalState.isOpen ? 'bg-blue-100 border-[#003366] text-[#003366] font-semibold shadow-2xs' : 'hover:bg-slate-100'
+              className={`btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 transition cursor-pointer border rounded-md font-medium ${
+                definitionModalState.isOpen ? 'bg-teal-50 border-teal-500 text-teal-800 font-semibold shadow-2xs' : 'text-slate-700 hover:bg-slate-50 border-slate-300 bg-white'
               }`}
               title="Look up bilingual word definitions (or double-click any word)"
             >
-              <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+              <BookOpen className="w-3.5 h-3.5 text-teal-600" />
               <span>Dictionary</span>
             </button>
 
@@ -3277,15 +3400,15 @@ export default function App() {
               <>
                 <button 
                   onClick={() => setShowRefModal(true)}
-                  className="btn-outline text-xs px-2.5 py-1 flex items-center gap-1 cursor-pointer hover:bg-slate-100"
+                  className="btn-outline text-xs px-2.5 py-1 flex items-center gap-1 cursor-pointer hover:bg-slate-100 border border-slate-300 bg-white rounded-md font-medium"
                   title="View Official SAT Reference Sheet"
                 >
-                  <FileText className="w-3.5 h-3.5 text-[#003366]" />
+                  <FileText className="w-3.5 h-3.5 text-teal-700" />
                   <span>Ref</span>
                 </button>
                 <button 
                   onClick={() => setShowCalcModal(true)}
-                  className="btn-outline text-xs px-2.5 py-1 flex items-center gap-1 cursor-pointer hover:bg-slate-100"
+                  className="btn-outline text-xs px-2.5 py-1 flex items-center gap-1 cursor-pointer hover:bg-slate-100 border border-slate-300 bg-white rounded-md font-medium"
                   title="Open Standard Calculator (supports physical keyboard)"
                 >
                   <Calculator className="w-3.5 h-3.5 text-purple-600" />
@@ -3295,7 +3418,7 @@ export default function App() {
                   href="https://www.desmos.com/calculator" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 cursor-pointer bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100 transition font-medium"
+                  className="btn-outline text-xs px-2.5 py-1 flex items-center gap-1.5 cursor-pointer bg-emerald-50 text-emerald-800 border border-emerald-300 hover:bg-emerald-100 transition font-medium rounded-md"
                   title="Open Official Desmos Graphing Calculator in new tab"
                 >
                   <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
@@ -3305,7 +3428,9 @@ export default function App() {
             )}
           </div>
         </div>
-      </nav>
+      </header>
+
+
 
       {/* ACTIVE TOOL OPTIONS SUB-BAR (IN-FLOW ABOVE WORKSPACE, NEVER COVERS TEXT) */}
       {(isScribbleMode || isHighlightMode || isAnnotateMode || isStrikethroughMode) && (
@@ -3611,10 +3736,10 @@ export default function App() {
         {currentQuestions.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gray-50 text-center z-10">
             <div className="max-w-md bg-white p-8 rounded-2xl border border-gray-200 shadow-sm">
-              <FileText className="w-12 h-12 text-[#003366] mx-auto mb-4 opacity-50" />
+              <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" style={{ color: MOODS[activeMood]?.themeColor }} />
               <h2 className="text-xl font-bold text-gray-900 mb-2">Module Under Preparation</h2>
               <p className="text-sm text-gray-600 mb-6">Questions for this module are currently being loaded. Please select another module or test from the top bar.</p>
-              <button onClick={() => switchModule('RW_1')} className="px-5 py-2.5 bg-[#003366] text-white font-bold text-xs rounded-xl shadow-xs hover:bg-[#002244] transition cursor-pointer">
+              <button onClick={() => switchModule('RW_1')} style={{ backgroundColor: MOODS[activeMood]?.themeColor }} className="px-5 py-2.5 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer hover:opacity-90">
                 Switch to Reading & Writing Module 1
               </button>
             </div>
@@ -3624,12 +3749,15 @@ export default function App() {
             {/* LEFT PANEL: DOMAIN + PASSAGE / STIMULUS / QUESTION PROMPT */}
             <div 
               id="passagePanel" 
-              style={{ width: `${splitRatio}%` }}
-              className="p-6 md:p-8 overflow-y-auto bg-white relative select-text shrink-0"
+              style={{ 
+                width: `${splitRatio}%`,
+                backgroundColor: '#ffffff'
+              }}
+              className="p-6 md:p-8 overflow-y-auto relative select-text shrink-0"
             >
               <div className="w-full max-w-2xl mx-auto space-y-4">
                 {/* DOMAIN HEADER (e.g. CRAFT AND STRUCTURE, ALGEBRA, ADVANCED MATH) */}
-                <div className="text-xs font-bold tracking-widest text-[#003366] uppercase font-sans border-b border-gray-200 pb-2 flex items-center justify-between">
+                <div className="text-xs font-bold tracking-widest uppercase font-sans border-b border-gray-200 pb-2 flex items-center justify-between" style={{ color: MOODS[activeMood]?.themeColor }}>
                   <span>{currentQ.domain || (currentQ.type === 'Math' ? 'MATH' : 'READING AND WRITING')}</span>
 
                   {/* HINT BUTTON FOR TEST 11 READING & WRITING MODULE 1 QUESTIONS */}
@@ -3707,15 +3835,17 @@ export default function App() {
             >
               {/* Subtle hairline centerline */}
               <div className={`absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px transition-colors duration-150 ${
-                isDraggingDivider ? 'bg-[#003366]' : 'bg-slate-200 group-hover:bg-[#003366]/40'
+                isDraggingDivider ? 'bg-teal-600' : 'bg-slate-200 group-hover:bg-teal-600/40'
               }`} />
 
               {/* Minimalist pill handle */}
-              <div className={`relative z-10 w-2.5 h-8 rounded-full border flex flex-col items-center justify-center gap-0.5 transition-all duration-150 shadow-2xs ${
-                isDraggingDivider 
-                  ? 'bg-[#003366] border-[#003366] text-white scale-105 shadow-sm' 
-                  : 'bg-white border-slate-300 text-slate-400 group-hover:border-[#003366] group-hover:bg-[#003366] group-hover:text-white group-hover:scale-105'
-              }`}>
+              <div 
+                className={`relative z-10 w-2.5 h-8 rounded-full border flex flex-col items-center justify-center gap-0.5 transition-all duration-150 shadow-2xs ${
+                  isDraggingDivider 
+                    ? 'bg-[#003366] border-[#003366] text-white scale-105 shadow-sm' 
+                    : 'bg-white border-slate-300 text-slate-400 group-hover:border-[#003366] group-hover:bg-[#003366] group-hover:text-white group-hover:scale-105'
+                }`}
+              >
                 <div className="w-1 h-1 rounded-full bg-current opacity-70" />
                 <div className="w-1 h-1 rounded-full bg-current opacity-70" />
                 <div className="w-1 h-1 rounded-full bg-current opacity-70" />
@@ -3725,15 +3855,21 @@ export default function App() {
             {/* RIGHT PANEL: QUESTION HEADER + QUESTION PROMPT (IF PASSAGE) + ANSWER CHOICES */}
             <div 
               id="questionPanel" 
-              style={{ width: `${100 - splitRatio}%` }}
-              className="p-6 md:p-8 bg-white overflow-y-auto relative select-text flex-1"
+              style={{ 
+                width: `${100 - splitRatio}%`,
+                backgroundColor: '#ffffff'
+              }}
+              className="p-6 md:p-8 overflow-y-auto relative select-text flex-1"
             >
               <div className="w-full max-w-2xl mx-auto">
                 <div className="mb-6">
                   {/* QUESTION HEADER BAR */}
                   <div className="flex items-center justify-between gap-3 mb-4 border-b border-gray-200 pb-3">
                     <div className="flex items-center gap-2">
-                      <span className="bg-[#003366] text-white px-3 py-1 text-xs font-bold rounded-md shadow-2xs">
+                      <span 
+                        style={{ backgroundColor: MOODS[activeMood]?.themeColor }}
+                        className="text-white px-3 py-1 text-xs font-bold rounded-md shadow-2xs"
+                      >
                         QUESTION {safeIndex + 1}
                       </span>
                       <span className="text-xs text-gray-500 font-medium">({currentQ.type === 'RW' ? 'Reading and Writing' : currentQ.type})</span>
@@ -3787,13 +3923,19 @@ export default function App() {
           /* SINGLE-COLUMN LAYOUT FOR STUDENT-PRODUCED RESPONSE (NO DIVIDER IN MIDDLE) */
           <div 
             id="questionPanel" 
-            className="w-full p-6 md:p-10 bg-white overflow-y-auto relative select-text flex-1"
+            style={{
+              backgroundColor: '#ffffff'
+            }}
+            className="w-full p-6 md:p-10 overflow-y-auto relative select-text flex-1"
           >
             <div className="w-full max-w-3xl mx-auto space-y-6">
               {/* QUESTION HEADER BAR */}
               <div className="flex items-center justify-between gap-3 border-b border-gray-200 pb-3">
                 <div className="flex items-center gap-2">
-                  <span className="bg-[#003366] text-white px-3 py-1 text-xs font-bold rounded-md shadow-2xs">
+                  <span 
+                    style={{ backgroundColor: 'var(--zen-primary, #0d5c6f)' }}
+                    className="text-white px-3 py-1 text-xs font-bold rounded-md shadow-2xs"
+                  >
                     QUESTION {safeIndex + 1}
                   </span>
                   <span className="text-xs text-gray-500 font-medium">({currentQ.type === 'RW' ? 'Reading and Writing' : currentQ.type})</span>
@@ -3814,7 +3956,7 @@ export default function App() {
               </div>
 
               {/* DOMAIN HEADER */}
-              <div className="text-xs font-bold tracking-widest text-[#003366] uppercase font-sans border-b border-gray-200 pb-2 flex items-center justify-between">
+              <div className="text-xs font-bold tracking-widest uppercase font-sans border-b border-gray-200 pb-2 flex items-center justify-between" style={{ color: 'var(--zen-primary, #0d5c6f)' }}>
                 <span>{currentQ.domain || (currentQ.type === 'Math' ? 'MATH' : 'READING AND WRITING')}</span>
 
                 {/* HINT BUTTON FOR TEST 11 READING & WRITING MODULE 1 QUESTIONS */}
@@ -3946,11 +4088,18 @@ export default function App() {
                   }}
                   className={`w-7 h-7 rounded text-xs font-bold transition shrink-0 cursor-pointer relative ${
                     idx === safeIndex 
-                      ? 'bg-white shadow-xs text-[#003366] ring-1 ring-[#003366]' 
+                      ? 'bg-white shadow-xs ring-2' 
                       : isAns
-                        ? 'bg-blue-100 text-[#003366]'
+                        ? 'font-bold'
                         : 'text-gray-500 hover:text-gray-900'
                   }`}
+                  style={
+                    idx === safeIndex 
+                      ? { color: '#003366', outlineColor: '#003366' } 
+                      : isAns 
+                        ? { backgroundColor: '#e0ecf8', color: '#003366' } 
+                        : undefined
+                  }
                 >
                   <span>{idx + 1}</span>
                   {isFlagged && (
@@ -4002,22 +4151,24 @@ export default function App() {
                   type="button"
                   disabled={isBackDisabled}
                   onClick={handleBack}
-                  className={`px-4 py-1.5 rounded text-sm font-semibold transition-all duration-150 active:scale-95 cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed disabled:pointer-events-none ${
-                    isBackActive
-                      ? 'bg-[#003366] text-white border border-[#003366] hover:bg-[#002244] shadow-xs font-bold'
-                      : 'bg-white text-[#003366] border border-[#003366] hover:bg-[#f0f4f8]'
-                  }`}
+                  style={{
+                    backgroundColor: isBackActive ? MOODS[activeMood]?.themeColor : 'white',
+                    color: isBackActive ? 'white' : MOODS[activeMood]?.themeColor,
+                    borderColor: MOODS[activeMood]?.themeColor
+                  }}
+                  className="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150 active:scale-95 cursor-pointer disabled:opacity-35 disabled:cursor-not-allowed disabled:pointer-events-none border shadow-xs"
                 >
                   Back
                 </button>
                 <button 
                   type="button"
                   onClick={handleNext}
-                  className={`px-4 py-1.5 rounded text-sm font-semibold transition-all duration-150 active:scale-95 cursor-pointer ${
-                    isNextActive
-                      ? 'bg-[#003366] text-white border border-[#003366] hover:bg-[#002244] shadow-xs font-bold'
-                      : 'bg-white text-[#003366] border border-[#003366] hover:bg-[#f0f4f8]'
-                  }`}
+                  style={{
+                    backgroundColor: isNextActive ? MOODS[activeMood]?.themeColor : 'white',
+                    color: isNextActive ? 'white' : MOODS[activeMood]?.themeColor,
+                    borderColor: MOODS[activeMood]?.themeColor
+                  }}
+                  className="px-4 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150 active:scale-95 cursor-pointer border shadow-xs"
                 >
                   {activeModuleKey === 'MATH_2' && safeIndex === currentQuestions.length - 1 ? 'Submit' : 'Next'}
                 </button>

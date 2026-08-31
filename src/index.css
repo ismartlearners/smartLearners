@@ -1,28 +1,39 @@
 @import "tailwindcss";
 
+:root {
+  --zen-primary: #0d5c6f;
+  --zen-primary-hover: #094452;
+  --zen-primary-light: #e6f4f7;
+  --zen-primary-border: #9ed4df;
+  --zen-accent: #0284c7;
+  --zen-bg-main: #f0f6f8;
+  --zen-panel-bg: #ffffff;
+  --zen-text-main: #0f1f26;
+}
+
 @layer utilities {
   .btn-blue {
-    background-color: #003366;
+    background-color: var(--zen-primary, #0d5c6f);
     color: white;
-    border-radius: 4px;
+    border-radius: 6px;
     padding: 6px 16px;
-    font-weight: 500;
-    transition: background-color 0.15s ease;
+    font-weight: 600;
+    transition: background-color 0.15s ease, transform 0.1s ease;
   }
   .btn-blue:hover {
-    background-color: #002244;
+    background-color: var(--zen-primary-hover, #094452);
   }
   .btn-outline {
-    border: 1px solid #003366;
-    color: #003366;
-    border-radius: 4px;
+    border: 1px solid var(--zen-primary, #0d5c6f);
+    color: var(--zen-primary, #0d5c6f);
+    border-radius: 6px;
     padding: 6px 16px;
     font-weight: 500;
     background-color: white;
     transition: all 0.15s ease;
   }
   .btn-outline:hover {
-    background-color: #f0f4f8;
+    background-color: var(--zen-primary-light, #e6f4f7);
   }
   .choice-btn {
     border: 1px solid #d1d5db;
@@ -39,13 +50,13 @@
     position: relative;
   }
   .choice-btn:hover {
-    background-color: #eff6ff;
-    border-color: #3b82f6;
+    background-color: var(--zen-primary-light, #e6f4f7);
+    border-color: var(--zen-primary-border, #9ed4df);
   }
   .choice-btn.selected {
-    background-color: #003366;
+    background-color: var(--zen-primary, #0d5c6f);
     color: white;
-    border-color: #003366;
+    border-color: var(--zen-primary, #0d5c6f);
   }
   .choice-btn.selected .choice-label {
     border-color: white;

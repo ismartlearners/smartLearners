@@ -14,6 +14,9 @@
 - **Contrast Rule**: When developing hints, pay close attention to contrast (e.g., `"Contrast: But... a cleaner process..."`, `"Contrast: However..."`, `"Contrast: ...rather..."`) because contrasting context helps users identify the antonym/counterpart vocab easily.
 
 ## Bilingual Dictionary Format Rule (PERMANENT & UNCHANGEABLE):
+- **Dictionary Source (STRICT RULE)**:
+  - ONLY use the **Free Dictionary API** (`https://api.dictionaryapi.dev/api/v2/entries/en/<word>`) combined with Datamuse and Google GTX translation.
+  - **DO NOT use Gemini API** for any word lookup, dictionary definition, translation, or vocabulary queries. This prevents any quota limits, 429 errors, or rate-limiting interruptions.
 - **Bilingual Structure (EN → VI)**:
   - **Definition**: English definition first, followed immediately below by the Vietnamese translation starting with `"Vietnamese: <Dịch tiếng Việt>"`.
   - **In Context**: English passage/sentence context first, followed immediately below by the Vietnamese translation starting with `"Vietnamese: <Dịch tiếng Việt>"`.
